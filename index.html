@@ -139,7 +139,7 @@
   .chips { display: flex; flex-wrap: wrap; gap: 6px; margin: 10px 0; max-height: 170px; overflow: auto; padding: 2px; }
   .chip { background: var(--surface-2); border-radius: 6px; padding: 3px 8px; font-size: 13.5px; font-variant-numeric: tabular-nums; }
   .xbar-result { font-size: 17px; margin: 6px 0; }
-  .xbar-result strong { font-variant-numeric: tabular-nums; }
+    .xbar-result strong { font-variant-numeric: tabular-nums; }
 
   .xbar { text-decoration: overline; font-style: italic; }
   .sym { font-style: italic; }
@@ -157,4 +157,658 @@
 
   .predict { background: var(--violet-soft); border-left: 5px solid var(--violet); border-radius: 10px; padding: 12px 14px; margin: 12px 0; }
   .predict b:first-child { color: var(--violet); }
-  .predict label { display: block; margin: 4px 0; cursor: pointer;
+  .predict label { display: block; margin: 4px 0; cursor: pointer; font-size: 15px; }
+  .feedback { border-radius: 10px; padding: 10px 14px; margin: 10px 0; font-size: 15px; display: none; }
+  .feedback.show { display: block; }
+  .feedback.good { background: var(--good-soft); color: var(--text); border-left: 4px solid var(--good); }
+  .feedback.warn { background: var(--warn-soft); color: var(--text); border-left: 4px solid var(--warn); }
+  .feedback.info { background: var(--accent-soft); color: var(--text); border-left: 4px solid var(--accent); }
+
+  .excel-check { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 12px; margin: 10px 0; }
+  .excel-check label { font-size: 14px; color: var(--text-2); display: block; margin-bottom: 4px; }
+  .excel-check input { width: 100%; font: inherit; padding: 8px 10px; border-radius: 8px; border: 1px solid var(--border); background: var(--surface); color: var(--text); }
+
+  .compare-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px; margin-top: 10px; }
+  .mini { background: var(--surface-2); border-top: 3px solid var(--teal); border-radius: 10px; padding: 8px 10px 4px; }
+  .mini .mini-title { font-size: 13.5px; font-weight: 600; }
+  .mini .mini-sub { font-size: 12.5px; color: var(--text-2); font-variant-numeric: tabular-nums; }
+
+  details { margin-top: 14px; border-top: 1px solid var(--border); padding-top: 10px; }
+  summary { cursor: pointer; font-weight: 600; color: var(--accent); }
+  .qa { margin: 12px 0; }
+  .qa .q { font-weight: 600; }
+  .qa .q::first-letter { color: var(--violet); }
+  .qa .a { display: none; margin-top: 6px; padding: 10px 14px; border-radius: 10px; background: var(--good-soft); border-left: 4px solid var(--good); }
+  .qa.open .a { display: block; }
+  .qa button { margin-top: 6px; padding: 5px 12px; font-size: 14px; }
+  .clt-box { border: 2px solid var(--accent); border-radius: 12px; padding: 14px 16px; margin: 12px 0; background: var(--accent-soft); }
+  .anchor { font-size: 19px; font-weight: 700; text-align: center; margin: 16px 0 6px; color: var(--violet); }
+  footer { margin-top: 28px; font-size: 13px; color: var(--muted); }
+  .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+  @media (max-width: 560px) {
+    h1 { font-size: 25px; }
+    section.step { padding: 16px 14px 18px; }
+    .stat .val { font-size: 19px; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <div class="kicker">MGSC 3005 · Week 8 · Session 1</div>
+  <h1>Sampling Distribution of <span class="xbar">x</span> and the Central Limit Theorem</h1>
+  <p class="lede">Choose a sample size <span class="sym">n</span>, draw 30 random samples, and watch what happens to the 30 sample means. Work through the steps in order. Each step unlocks the next one.</p>
+  <div class="context">
+    <b>Business context (Doane Figure 8.1).</b> The MBA applicant pool at a medium-sized public university has
+    <b>N = 2,637</b> GMAT scores with population mean <b><span class="sym">μ</span> = 520.78</b> and population standard deviation
+    <b><span class="sym">σ</span> = 86.80</b>. The admissions office wants to know how reliable a sample mean is at different sample sizes
+    before it invests in a larger applicant survey.
+  </div>
+</header>
+
+<div class="progress" aria-hidden="true" id="progress">
+  <span></span><span></span><span></span><span></span><span></span><span></span><span></span>
+</div>
+
+<!-- STEP 1 -->
+<section class="step" id="step1">
+  <div class="step-head"><span class="step-num">1</span><h2>Meet the population</h2></div>
+  <p>This histogram shows every GMAT score in the applicant pool. This is the distribution of the individual scores <span class="sym">X</span>.</p>
+  <div class="stats">
+    <div class="stat"><div class="lbl">Population size</div><div class="val">N = 2,637</div></div>
+    <div class="stat"><div class="lbl">Population mean</div><div class="val"><span class="sym">μ</span> = <span id="popMu">520.78</span></div><div class="sub">a parameter, fixed</div></div>
+    <div class="stat"><div class="lbl">Population std. dev.</div><div class="val"><span class="sym">σ</span> = <span id="popSigma">86.80</span></div><div class="sub">spread of individual scores</div></div>
+  </div>
+  <div class="chart-title">Population distribution: all 2,637 GMAT scores</div>
+  <div class="legend"><span><i style="background:var(--pop)"></i>Individual GMAT scores</span><span><i class="dash"></i><span class="sym">μ</span> = 520.78</span></div>
+  <div class="chart" id="popChart"></div>
+  <p class="hint">Notice the shape: the pool is <b>not</b> perfectly normal. It has a longer tail on the right (right-skewed). Keep this picture in mind. It will <b>never change</b> in this activity, whatever sample size you choose.</p>
+  <div class="btn-row"><button id="btnStep1">Got it. Next step</button></div>
+</section>
+
+<!-- STEP 2 -->
+<section class="step locked" id="step2">
+  <div class="step-head"><span class="step-num">2</span><h2>Choose your sample size <span class="sym">n</span></h2></div>
+  <div class="lock-note">Finish Step 1 to unlock.</div>
+  <p>How many applicants will the admissions office sample? The lab uses <b>n = 5, 20, and 50</b>. Start with <b>n = 5</b>.</p>
+  <div class="n-choices" id="nChoices">
+    <button data-n="5">n = 5</button>
+    <button data-n="20">n = 20</button>
+    <button data-n="50">n = 50</button>
+  </div>
+  <div class="slider-row">
+    <label for="nSlider">Or pick any n from 2 to 100:</label>
+    <input type="range" id="nSlider" min="2" max="100" step="1" value="5">
+    <span class="n-badge" id="nSliderVal">n = 5</span>
+    <button class="secondary" id="btnUseSlider">Use this n</button>
+  </div>
+    <p class="hint" id="nChosenMsg" style="margin-top:12px"></p>
+</section>
+
+<!-- STEP 3 -->
+<section class="step locked" id="step3">
+  <div class="step-head"><span class="step-num">3</span><h2>Draw one sample and compute <span class="xbar">x</span></h2></div>
+  <div class="lock-note">Choose n in Step 2 to unlock.</div>
+  <p>Randomly select <b class="nText">n</b> applicants from the pool and compute their sample mean <span class="xbar">x</span> (in Excel: <span class="formula">=AVERAGE(range)</span>).</p>
+  <div class="btn-row">
+    <button id="btnOneSample">Draw one sample</button>
+    <button class="secondary" id="btnAnotherSample" disabled>Draw another sample</button>
+  </div>
+  <div id="oneSampleOut" style="display:none">
+    <div class="chips" id="sampleChips"></div>
+    <div class="xbar-result">Sample mean: <span class="xbar">x</span> = <strong id="oneXbar"></strong></div>
+    <p class="hint" id="oneSampleHint">Click <b>Draw another sample</b> a few times. Does <span class="xbar">x</span> stay the same? It changes from sample to sample because each sample contains different applicants. This is <b>sampling variability</b>, and it is why <span class="xbar">x</span> is a random variable.</p>
+    <div class="btn-row"><button id="btnStep3">Next: take 30 samples</button></div>
+  </div>
+</section>
+
+<!-- STEP 4 -->
+<section class="step locked" id="step4">
+  <div class="step-head"><span class="step-num">4</span><h2>Take 30 samples of size <span class="nText">n</span></h2></div>
+  <div class="lock-note">Finish Step 3 to unlock.</div>
+  <div class="predict" id="predictBox">
+    <b>Predict first.</b> The individual scores have <span class="sym">σ</span> = 86.80. Will the 30 sample means be…
+    <label><input type="radio" name="pred" value="same"> about as spread out as the individual scores</label>
+    <label><input type="radio" name="pred" value="less"> less spread out than the individual scores</label>
+    <label><input type="radio" name="pred" value="more"> more spread out than the individual scores</label>
+  </div>
+  <div class="btn-row"><button id="btn30">Draw 30 samples</button></div>
+  <div id="out30" style="display:none">
+    <div class="feedback" id="predFeedback"></div>
+    <div class="chart-title">Sampling distribution: the 30 sample means (n = <span class="nText">n</span>)</div>
+    <div class="legend">
+      <span><i style="background:var(--means)"></i>30 sample means <span class="xbar">x</span></span>
+      <span><i class="line" style="background:var(--curve)"></i>Normal curve predicted by the CLT</span>
+      <span><i class="dash"></i><span class="sym">μ</span> = 520.78</span>
+    </div>
+    <div class="chart" id="meansChart"></div>
+    <p class="hint" id="axisNote"></p>
+    <div class="btn-row" style="margin-top:0"><button class="secondary" id="btnZoom">Zoom in on the sample means</button></div>
+    <div class="table-wrap" style="border:none">
+      <div class="means-grid" id="meansGrid"></div>
+    </div>
+    <details id="bonus">
+      <summary>Bonus: 30 samples is a small number. See the shape with 1,000 samples</summary>
+      <p class="hint">With only 30 means, the histogram is bumpy. Drawing 1,000 samples of the same size makes the shape easier to see (this chart is zoomed in). It is for the picture only; Steps 5 and 6 still use your 30 samples.</p>
+      <div class="btn-row"><button class="secondary" id="btn1000">Draw 1,000 samples of size <span class="nText">n</span></button></div>
+      <div class="chart" id="bonusChart"></div>
+      <p class="hint" id="bonusNote"></p>
+    </details>
+    <div class="btn-row"><button id="btnStep4">Next: summarize the 30 means</button></div>
+  </div>
+</section>
+
+<!-- STEP 5 -->
+<section class="step locked" id="step5">
+  <div class="step-head"><span class="step-num">5</span><h2>Summarize the 30 sample means</h2></div>
+  <div class="lock-note">Finish Step 4 to unlock.</div>
+  <p>Treat the 30 values of <span class="xbar">x</span> as a new data set. Copy them into Excel and compute:</p>
+  <ul>
+    <li>their average, <span class="formula">=AVERAGE(range)</span>, which estimates the center of the sampling distribution</li>
+    <li>their standard deviation, <span class="formula">=STDEV.S(range)</span>, which is the <b>observed standard error</b> of <span class="xbar">x</span></li>
+  </ul>
+  <div class="btn-row">
+    <button class="secondary" id="btnCopy">Copy the 30 sample means</button>
+    <span class="hint" id="copyMsg"></span>
+  </div>
+  <div class="excel-check">
+    <div><label for="inAvg">Your Excel result: =AVERAGE of the 30 means</label><input id="inAvg" inputmode="decimal" placeholder="e.g., 519.42"></div>
+    <div><label for="inSd">Your Excel result: =STDEV.S of the 30 means</label><input id="inSd" inputmode="decimal" placeholder="e.g., 38.10"></div>
+  </div>
+  <div class="btn-row">
+    <button id="btnCheck">Check my answers</button>
+    <button class="secondary" id="btnReveal">Show the answers</button>
+  </div>
+  <div class="feedback" id="checkFeedback"></div>
+  <div id="revealOut" style="display:none">
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Quantity</th><th>From your 30 samples</th><th>What theory predicts</th></tr></thead>
+        <tbody>
+          <tr><td>Center: average of the 30 <span class="xbar">x</span> values</td><td id="rAvg"></td><td><span class="sym">μ</span> = 520.78</td></tr>
+          <tr><td>Spread: standard error of <span class="xbar">x</span></td><td id="rSd"></td><td id="rTheory"></td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p id="revealText"></p>
+    <div class="btn-row"><button id="btnSave">Save this run and go to Step 6</button></div>
+  </div>
+</section>
+
+<!-- STEP 6 -->
+<section class="step locked" id="step6">
+  <div class="step-head"><span class="step-num">6</span><h2>Repeat with a larger <span class="sym">n</span> and compare</h2></div>
+  <div class="lock-note">Save a run in Step 5 to unlock.</div>
+  <p>Go back to Step 2, pick a <b>larger n</b>, and repeat Steps 3 to 5. Save at least three runs: <b>n = 5, 20, and 50</b>. Each saved run appears below.</p>
+  <div class="btn-row"><button id="btnNewN">Choose a new n (back to Step 2)</button><button class="secondary" id="btnClearRuns">Clear saved runs</button></div>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Run</th><th><span class="sym">n</span></th><th>Average of 30 <span class="xbar">x</span></th><th>Observed SE<br>(STDEV.S of 30 <span class="xbar">x</span>)</th><th>Theoretical SE<br><span class="sym">σ</span> / √<span class="sym">n</span></th></tr></thead>
+      <tbody id="runsBody"><tr><td colspan="5" class="hint" style="text-align:left">No saved runs yet.</td></tr></tbody>
+    </table>
+  </div>
+    <div class="chart-title">The 30 sample means for each saved run (same axis as the population)</div>
+  <div class="compare-grid" id="compareGrid"></div>
+  <div id="seBlock" style="display:none">
+    <div class="chart-title">Standard error shrinks as n grows</div>
+    <div class="legend">
+      <span><i class="line" style="background:var(--curve)"></i>Theoretical SE = <span class="sym">σ</span> / √<span class="sym">n</span></span>
+      <span><i style="background:var(--means); border-radius:50%; width:10px; height:10px"></i>Observed SE from your runs</span>
+    </div>
+    <div class="chart" id="seChart"></div>
+  </div>
+  <div class="feedback info" id="compareMsg"></div>
+  <div class="btn-row"><button id="btnStep6" disabled>Next: what did you discover?</button><span class="hint" id="step6Hint">Save runs for at least two different values of n to continue.</span></div>
+</section>
+
+<!-- STEP 7 -->
+<section class="step locked" id="step7">
+  <div class="step-head"><span class="step-num">7</span><h2>What did you discover?</h2></div>
+  <div class="lock-note">Compare at least two sample sizes in Step 6 to unlock.</div>
+  <p>Answer each question on your own first, then check.</p>
+
+  <div class="qa"><div class="q">1. Did the population histogram in Step 1 change when you changed n?</div>
+    <button class="secondary">Check</button>
+    <div class="a">No. The individual scores and their spread, <span class="sym">σ</span> = 86.80, stay the same. Larger samples do <b>not</b> reduce the spread of individual GMAT scores.</div></div>
+
+  <div class="qa"><div class="q">2. What happened to the spread of the 30 sample means as n increased?</div>
+    <button class="secondary">Check</button>
+    <div class="a">It shrank. The standard error of the mean is <span class="sym">σ</span><sub><span class="xbar">x</span></sub> = <span class="sym">σ</span> / √<span class="sym">n</span>: about 38.82 at n = 5, 19.41 at n = 20, and 12.28 at n = 50. Your observed values (STDEV.S of the 30 means) should be close to these.</div></div>
+
+  <div class="qa"><div class="q">3. Where was the histogram of sample means centered?</div>
+    <button class="secondary">Check</button>
+    <div class="a">Near <span class="sym">μ</span> = 520.78 for every n. The sample mean is an unbiased estimator: E(<span class="xbar">x</span>) = <span class="sym">μ</span>.</div></div>
+
+  <div class="qa"><div class="q">4. What happened to the shape of the sampling distribution as n increased?</div>
+    <button class="secondary">Check</button>
+    <div class="a">It became more bell-shaped (closer to normal), even though the population is right-skewed. The bonus with 1,000 samples in Step 4 shows this most clearly.</div></div>
+
+  <div class="qa"><div class="q">5. Going from n = 5 to n = 20 multiplies the sample size by 4. What happens to the standard error?</div>
+    <button class="secondary">Check</button>
+    <div class="a">It is cut in half, because √4 = 2: 86.80 / √5 ≈ 38.82 and 86.80 / √20 ≈ 19.41. Quadrupling n halves <span class="sym">σ</span><sub><span class="xbar">x</span></sub>.</div></div>
+
+  <div class="clt-box">
+    <b>Central Limit Theorem (CLT).</b> If a random sample of size <span class="sym">n</span> is drawn from a population with mean <span class="sym">μ</span> and standard deviation <span class="sym">σ</span>, the distribution of the sample mean <span class="xbar">X</span> approaches a normal distribution with mean <span class="sym">μ</span> and standard error <span class="sym">σ</span><sub><span class="xbar">x</span></sub> = <span class="sym">σ</span> / √<span class="sym">n</span> as the sample size increases.
+    <p style="margin-bottom:0"><b>Rule of thumb:</b> n ≥ 30 is sufficient for most populations, even skewed ones. Symmetric populations require a smaller n.</p>
+  </div>
+  <div class="anchor">"The raw data did not become normal. The sample means did."</div>
+  <p class="hint" style="text-align:center">The CLT changes the picture of <span class="xbar">X</span>. It does not change the picture of <span class="sym">X</span>.</p>
+</section>
+
+<footer>
+  MGSC 3005 · Week 8 · Doane and Seward, Chapter 8. The applicant pool on this page is a simulated set of 2,637 scores built to match the lab's population parameters (<span class="sym">μ</span> = 520.78, <span class="sym">σ</span> = 86.80). Every sample is drawn at random, so your numbers will differ slightly from your classmates'.
+</footer>
+</div>
+
+<script>
+(() => {
+  "use strict";
+
+  // ---------- Population ----------
+  // To use the real 2,637 GMAT scores instead of the simulated pool,
+  // paste them into this array, e.g. const REAL_SCORES = [530, 450, 600, ...];
+  const REAL_SCORES = null;
+
+  const MU = 520.78, SIGMA = 86.80, NPOP = 2637, R = 30;
+  const XMIN = 200, XMAX = 800;
+
+  function mulberry32(a) {
+    return function () {
+      a |= 0; a = a + 0x6D2B79F5 | 0;
+      let t = Math.imul(a ^ a >>> 15, 1 | a);
+      t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
+      return ((t ^ t >>> 14) >>> 0) / 4294967296;
+    };
+  }
+  function meanSd(a) {
+    const m = a.reduce((s, x) => s + x, 0) / a.length;
+    const sd = Math.sqrt(a.reduce((s, x) => s + (x - m) ** 2, 0) / a.length);
+    return [m, sd];
+  }
+  // Right-skewed pool (gamma-shaped), bounded to 200–800, rescaled to mu and sigma, integer scores.
+  function buildPopulation() {
+    const r = mulberry32(8012026);
+    let v = [];
+    for (let i = 0; i < NPOP; i++) { let g = 0; for (let k = 0; k < 6; k++) g -= Math.log(1 - r()); v.push(g); }
+    for (let it = 0; it < 40; it++) {
+      const [m, sd] = meanSd(v);
+      v = v.map(x => Math.min(XMAX, Math.max(XMIN, MU + SIGMA * (x - m) / sd)));
+    }
+    const [m, sd] = meanSd(v);
+    v = v.map(x => Math.round(MU + SIGMA * (x - m) / sd));
+    let diff = Math.round(MU * NPOP) - v.reduce((s, x) => s + x, 0), i = 0;
+    while (diff !== 0) { const j = (i * 7919) % NPOP; if (v[j] > 300 && v[j] < 700) { v[j] += Math.sign(diff); diff -= Math.sign(diff); } i++; }
+    return v;
+  }
+  const POP = Array.isArray(REAL_SCORES) && REAL_SCORES.length ? REAL_SCORES.slice() : buildPopulation();
+  const [POP_MU, POP_SIGMA] = meanSd(POP);
+  document.getElementById("popMu").textContent = POP_MU.toFixed(2);
+  document.getElementById("popSigma").textContent = POP_SIGMA.toFixed(2);
+
+  // ---------- Helpers ----------
+  const $ = id => document.getElementById(id);
+  const avg = a => a.reduce((s, x) => s + x, 0) / a.length;
+  const stdevS = a => { const m = avg(a); return Math.sqrt(a.reduce((s, x) => s + (x - m) ** 2, 0) / (a.length - 1)); };
+  const stdevP = a => { const m = avg(a); return Math.sqrt(a.reduce((s, x) => s + (x - m) ** 2, 0) / a.length); };
+  const r2 = x => Math.round(x * 100) / 100;
+  const f2 = x => x.toFixed(2);
+  const theorySE = n => POP_SIGMA / Math.sqrt(n);
+
+  function drawSample(n) {
+    const picked = new Set();
+    while (picked.size < n) picked.add(Math.floor(Math.random() * POP.length));
+    return [...picked].map(i => POP[i]);
+  }
+    const normPdf = (x, m, s) => Math.exp(-0.5 * ((x - m) / s) ** 2) / (s * Math.sqrt(2 * Math.PI));
+
+  function niceMax(v) {
+    if (v <= 0) return 1;
+    const p = Math.pow(10, Math.floor(Math.log10(v)));
+    for (const k of [1, 2, 2.5, 5, 10]) if (k * p >= v) return k * p;
+    return 10 * p;
+  }
+  function niceStep(max) {
+    const raw = max / 4, p = Math.pow(10, Math.floor(Math.log10(raw)));
+    for (const k of [1, 2, 2.5, 5, 10]) if (k * p >= raw) return k * p;
+    return 10 * p;
+  }
+  // Zoomed axis around mu, wide enough to hold the data and about 4 standard errors
+  function zoomRange(data, se, bins) {
+    const half = Math.max(4 * se, ...data.map(x => Math.abs(x - POP_MU))) * 1.08;
+    const bw = niceMax(2 * half / bins);      // about `bins` bars across the view
+    const xt = niceMax(2 * half / 6);         // about 6 tick labels
+    const lo = Math.floor((POP_MU - half) / bw) * bw, hi = Math.ceil((POP_MU + half) / bw) * bw;
+    return { xmin: lo, xmax: hi, binW: bw, xTick: xt };
+  }
+  const NS = "http://www.w3.org/2000/svg";
+  function el(tag, attrs, parent, text) {
+    const e = document.createElementNS(NS, tag);
+    for (const k in attrs) {
+      const v = attrs[k];
+      // CSS variables go through style so they work in every browser and follow light/dark mode
+      if ((k === "fill" || k === "stroke") && typeof v === "string" && v.startsWith("var(")) e.style[k] = v;
+      else e.setAttribute(k, v);
+    }
+    if (text != null) e.textContent = text;
+    if (parent) parent.appendChild(e);
+    return e;
+  }
+  function barPath(x, y, w, h, r) {
+    r = Math.min(r, w / 2, h);
+    if (h <= 0) return "";
+    return `M${x},${y + h} L${x},${y + r} Q${x},${y} ${x + r},${y} L${x + w - r},${y} Q${x + w},${y} ${x + w},${y + r} L${x + w},${y + h} Z`;
+  }
+
+  // Histogram with fixed 200–800 axis
+  function histogram(container, data, opt) {
+    const W = opt.width || 720, H = opt.height || 250;
+    const m = { l: 46, r: 14, t: 12, b: opt.compact ? 26 : 40 };
+    const iw = W - m.l - m.r, ih = H - m.t - m.b;
+    const bw = opt.binW;
+    const LO = opt.xmin != null ? opt.xmin : XMIN, HI = opt.xmax != null ? opt.xmax : XMAX;
+    const nb = Math.round((HI - LO) / bw);
+    const counts = new Array(nb).fill(0);
+    data.forEach(x => { let b = Math.floor((x - LO) / bw); if (b >= nb) b = nb - 1; if (b < 0) b = 0; counts[b]++; });
+    let curveMax = 0;
+    if (opt.curve) curveMax = data.length * bw * normPdf(opt.curve.m, opt.curve.m, opt.curve.s);
+    const yMax = opt.yMax || niceMax(Math.max(...counts, curveMax, 1) * 1.05);
+    const sx = x => m.l + (x - LO) / (HI - LO) * iw;
+    const sy = y => m.t + ih - y / yMax * ih;
+
+    container.innerHTML = "";
+    const svg = el("svg", { viewBox: `0 0 ${W} ${H}`, role: "img", "aria-label": opt.label || "Histogram" }, container);
+    const ax = el("g", { class: "axis" }, svg);
+    const step = niceStep(yMax);
+    for (let v = 0; v <= yMax + 1e-9; v += step) {
+      el("line", { x1: m.l, x2: W - m.r, y1: sy(v), y2: sy(v), stroke: "var(--grid)", "stroke-width": 1 }, ax);
+      el("text", { x: m.l - 8, y: sy(v) + 4, "text-anchor": "end" }, ax, Number.isInteger(v) ? v : v.toFixed(1));
+    }
+    const xt = opt.xTick || 100;
+    for (let v = Math.ceil(LO / xt) * xt; v <= HI + 1e-9; v += xt) el("text", { x: sx(v), y: H - m.b + 16, "text-anchor": "middle" }, ax, Math.round(v));
+    el("line", { x1: m.l, x2: W - m.r, y1: sy(0), y2: sy(0), stroke: "var(--muted)", "stroke-width": 1 }, ax);
+    if (!opt.compact) {
+      el("text", { x: m.l + iw / 2, y: H - 4, "text-anchor": "middle", class: "axis-title" }, ax, opt.xTitle || "GMAT score");
+      el("text", { x: 12, y: m.t + ih / 2, "text-anchor": "middle", class: "axis-title", transform: `rotate(-90 12 ${m.t + ih / 2})` }, ax, "Count");
+    }
+    const bars = el("g", {}, svg);
+    const pxPerBin = iw / nb;
+    const gap = pxPerBin > 5 ? 2 : 1;
+    counts.forEach((c, i) => {
+      if (!c) return;
+      const a = LO + i * bw, bnd = LO + (i + 1) * bw;
+      const x0 = sx(a) + gap / 2, w = Math.max(1, pxPerBin - gap);
+      const y = sy(c), h = sy(0) - y;
+      const tip = `${+a.toFixed(1)} to ${+bnd.toFixed(1)}: ${c} ${opt.unit || "values"}`;
+      const p = el("path", { d: barPath(x0, y, w, h, 4), fill: opt.color }, bars);
+      el("title", {}, p, tip);
+      // wider invisible hit target for hover
+      const hit = el("rect", { x: sx(a), y: m.t, width: pxPerBin, height: ih, fill: "transparent" }, bars);
+      el("title", {}, hit, tip);
+    });
+    if (opt.curve) {
+      let d = "";
+      for (let x = LO; x <= HI + 1e-9; x += (HI - LO) / 300) {
+        const y = data.length * bw * normPdf(x, opt.curve.m, opt.curve.s);
+        d += (d ? " L" : "M") + sx(x).toFixed(1) + "," + sy(Math.min(y, yMax)).toFixed(1);
+      }
+      el("path", { d, fill: "none", stroke: "var(--curve)", "stroke-width": 2, "stroke-linejoin": "round" }, svg);
+    }
+    const mx = sx(POP_MU);
+    el("line", { x1: mx, x2: mx, y1: m.t, y2: sy(0), stroke: "var(--text-2)", "stroke-width": 1.5, "stroke-dasharray": "4 4" }, svg);
+    if (!opt.compact) el("text", { x: mx + 5, y: m.t + 10, class: "axis-title" }, svg, "μ");
+    return { counts, yMax };
+  }
+
+  // ---------- State ----------
+  let n = null, current30 = null, runs = [], stepDone = new Set(), zoomed = false;
+
+  function unlock(k) {
+    const s = $("step" + k);
+    if (s.classList.contains("locked")) {
+      s.classList.remove("locked");
+    }
+  }
+  function markDone(k) {
+    stepDone.add(k);
+    const bars = $("progress").children;
+    for (let i = 0; i < bars.length; i++) bars[i].classList.toggle("done", stepDone.has(i + 1));
+  }
+  function scrollTo(k) { $("step" + k).scrollIntoView({ behavior: "smooth", block: "start" }); }
+  function setNText() { document.querySelectorAll(".nText").forEach(e => e.textContent = n == null ? "n" : n); }
+
+  // ---------- Step 1 ----------
+  histogram($("popChart"), POP, { binW: 20, color: "var(--pop)", unit: "applicants", label: "Histogram of the 2,637 GMAT scores in the population" });
+  $("btnStep1").onclick = () => { markDone(1); unlock(2); scrollTo(2); };
+
+  // ---------- Step 2 ----------
+  function chooseN(v) {
+    n = v;
+    setNText();
+    document.querySelectorAll("#nChoices button").forEach(b => b.classList.toggle("active", +b.dataset.n === n));
+    $("nChosenMsg").innerHTML = `You chose <b>n = ${n}</b>. Each sample will contain ${n} randomly selected applicants.`;
+    // reset downstream work for the new n
+    current30 = null;
+    $("oneSampleOut").style.display = "none";
+    $("btnAnotherSample").disabled = true;
+    $("out30").style.display = "none";
+    $("revealOut").style.display = "none";
+    $("checkFeedback").className = "feedback";
+    $("inAvg").value = ""; $("inSd").value = "";
+    $("bonusChart").innerHTML = ""; $("bonusNote").textContent = "";
+    document.querySelectorAll('input[name="pred"]').forEach(r => r.checked = false);
+    ["step4", "step5"].forEach(id => $(id).classList.add("locked"));
+        [3, 4, 5].forEach(k => stepDone.delete(k));
+    markDone(2);
+    unlock(3);
+    setTimeout(() => scrollTo(3), 150);
+  }
+  document.querySelectorAll("#nChoices button").forEach(b => b.onclick = () => chooseN(+b.dataset.n));
+  $("nSlider").oninput = e => $("nSliderVal").textContent = "n = " + e.target.value;
+  $("btnUseSlider").onclick = () => chooseN(+$("nSlider").value);
+
+  // ---------- Step 3 ----------
+  function oneSample() {
+    const s = drawSample(n);
+    $("sampleChips").innerHTML = s.map(x => `<span class="chip">${x}</span>`).join("");
+    $("oneXbar").textContent = f2(avg(s));
+    $("oneSampleOut").style.display = "block";
+    $("btnAnotherSample").disabled = false;
+  }
+  $("btnOneSample").onclick = oneSample;
+  $("btnAnotherSample").onclick = oneSample;
+  $("btnStep3").onclick = () => { markDone(3); unlock(4); scrollTo(4); };
+
+  // ---------- Step 4 ----------
+  $("btn30").onclick = () => {
+    current30 = [];
+    for (let i = 0; i < R; i++) current30.push(r2(avg(drawSample(n))));
+    $("out30").style.display = "block";
+    zoomed = false;
+    drawMeansChart();
+    $("meansGrid").innerHTML = current30.map((x, i) => `<div><span>#${i + 1}</span>${f2(x)}</div>`).join("");
+    const pred = document.querySelector('input[name="pred"]:checked');
+    const fb = $("predFeedback");
+    const sd = stdevS(current30);
+    if (!pred) {
+      fb.className = "feedback info show";
+      fb.innerHTML = `The 30 sample means range from ${f2(Math.min(...current30))} to ${f2(Math.max(...current30))}. Compare that with the individual scores in Step 1, which range from ${Math.min(...POP)} to ${Math.max(...POP)}.`;
+    } else if (pred.value === "less") {
+      fb.className = "feedback good show";
+      fb.innerHTML = `<b>Correct.</b> The sample means cluster much more tightly around <i>μ</i> than individual scores do. Averaging cancels out some of the high and low scores.`;
+    } else {
+      fb.className = "feedback warn show";
+      fb.innerHTML = `<b>Look again.</b> The sample means are <b>less</b> spread out than individual scores. In each sample, high and low scores partly cancel out, so the averages cluster around <i>μ</i>.`;
+    }
+    // reset downstream for the new set of 30
+    $("revealOut").style.display = "none";
+    $("checkFeedback").className = "feedback";
+    $("bonusChart").innerHTML = ""; $("bonusNote").textContent = "";
+    $("btn30").textContent = "Redraw 30 new samples";
+  };
+  function drawMeansChart() {
+    const base = { color: "var(--means)", unit: "sample means", curve: { m: POP_MU, s: theorySE(n) }, label: `Histogram of 30 sample means for n = ${n}` };
+    histogram($("meansChart"), current30, zoomed ? { ...base, ...zoomRange(current30, theorySE(n), 18) } : { ...base, binW: 10 });
+    $("btnZoom").textContent = zoomed ? "Show the full 200 to 800 scale" : "Zoom in on the sample means";
+    $("axisNote").innerHTML = zoomed
+      ? "<b>Zoomed in.</b> The horizontal axis now covers only the range of the sample means, so the shape is easier to see. Switch back to compare the spread with the population."
+      : "The horizontal axis matches the population histogram in Step 1 (200 to 800), so you can compare the spread directly.";
+  }
+  $("btnZoom").onclick = () => { zoomed = !zoomed; drawMeansChart(); };
+  $("btn1000").onclick = () => {
+    const big = [];
+    for (let i = 0; i < 1000; i++) big.push(avg(drawSample(n)));
+    histogram($("bonusChart"), big, {
+      ...zoomRange(big, theorySE(n), 45), color: "var(--means)", unit: "sample means",
+      curve: { m: POP_MU, s: theorySE(n) },
+      label: `Histogram of 1,000 sample means for n = ${n}`
+    });
+    $("bonusNote").innerHTML = `1,000 samples of size n = ${n}: average of the means = ${f2(avg(big))}, STDEV.S of the means = ${f2(stdevS(big))}, and <i>σ</i> / √<i>n</i> = ${f2(theorySE(n))}. ` +
+      (n < 10 ? "With a small n, you may still see a slight right skew inherited from the population." : "The shape is close to the normal curve.");
+  };
+  $("btnStep4").onclick = () => { markDone(4); unlock(5); scrollTo(5); };
+
+  // ---------- Step 5 ----------
+  $("btnCopy").onclick = async () => {
+    const text = current30.map(f2).join("\n");
+    let ok = false;
+    try { await navigator.clipboard.writeText(text); ok = true; } catch (e) {
+      const ta = document.createElement("textarea"); ta.value = text; document.body.appendChild(ta); ta.select();
+      try { ok = document.execCommand("copy"); } catch (e2) { ok = false; }
+      ta.remove();
+    }
+    $("copyMsg").textContent = ok ? "Copied. Paste into one column in Excel (e.g., cell A1)." : "Copy failed. Select the values in Step 4 and copy them manually.";
+  };
+  const parseNum = s => { const v = parseFloat(String(s).replace(/[,\s]/g, "")); return isNaN(v) ? null : v; };
+  $("btnCheck").onclick = () => {
+    const a = parseNum($("inAvg").value), s = parseNum($("inSd").value);
+    const trueA = avg(current30), trueS = stdevS(current30), trueP = stdevP(current30);
+    const fb = $("checkFeedback");
+    const msgs = [];
+    let allGood = true;
+    if (a == null) { msgs.push("Enter your =AVERAGE result."); allGood = false; }
+    else if (Math.abs(a - trueA) <= 0.015) msgs.push(`✔ AVERAGE = ${f2(trueA)} is correct.`);
+    else { msgs.push(`✘ Your AVERAGE is not quite right. Make sure your range covers all 30 values.`); allGood = false; }
+    if (s == null) { msgs.push("Enter your =STDEV.S result."); allGood = false; }
+    else if (Math.abs(s - trueS) <= 0.015) msgs.push(`✔ STDEV.S = ${f2(trueS)} is correct.`);
+    else if (Math.abs(s - trueP) <= 0.015) { msgs.push(`✘ That matches STDEV.P. Use <b>STDEV.S</b>, which divides by n − 1, not n.`); allGood = false; }
+    else { msgs.push(`✘ Your standard deviation is not quite right. Use =STDEV.S on the 30 sample means (not on the individual scores).`); allGood = false; }
+    fb.className = "feedback show " + (allGood ? "good" : "warn");
+    fb.innerHTML = msgs.join("<br>") + (allGood ? "<br>Great work. Click <b>Show the answers</b> to compare with theory." : "");
+  };
+  $("btnReveal").onclick = () => {
+    const a = avg(current30), s = stdevS(current30), t = theorySE(n);
+    $("rAvg").textContent = f2(a);
+    $("rSd").innerHTML = `${f2(s)} <span class="hint">(STDEV.S)</span>`;
+    $("rTheory").innerHTML = `${f2(POP_SIGMA)} / √${n} = <b>${f2(t)}</b>`;
+    $("revealText").innerHTML =
+      `The 30 sample means are centered near <i>μ</i> = ${f2(POP_MU)}, and their spread (${f2(s)}) is close to the standard error the CLT predicts, ` +
+      `<i>σ</i><sub><span class="xbar">x</span></sub> = <i>σ</i> / √<i>n</i> = ${f2(t)}. Individual scores still spread with <i>σ</i> = ${f2(POP_SIGMA)}; ` +
+      `the <b>means</b> spread much less. The two SE values will not match exactly because 30 samples is a small number, but they should be in the same neighborhood.`;
+    $("revealOut").style.display = "block";
+  };
+  $("btnSave").onclick = () => {
+        runs.push({ n, means: current30.slice(), avg: avg(current30), se: stdevS(current30) });
+    renderRuns();
+    markDone(5);
+    unlock(6);
+    scrollTo(6);
+  };
+
+  // ---------- Step 6 ----------
+  function renderRuns() {
+    const body = $("runsBody");
+    if (!runs.length) {
+      body.innerHTML = `<tr><td colspan="5" class="hint" style="text-align:left">No saved runs yet.</td></tr>`;
+      $("compareGrid").innerHTML = ""; $("seBlock").style.display = "none";
+      $("compareMsg").className = "feedback info";
+      $("btnStep6").disabled = true; $("step6Hint").style.display = "";
+      return;
+    }
+    const sorted = runs.map((r, i) => ({ ...r, id: i + 1 })).sort((a, b) => a.n - b.n || a.id - b.id);
+    body.innerHTML = sorted.map(r =>
+      `<tr><td>Run ${r.id}</td><td>${r.n}</td><td>${f2(r.avg)}</td><td>${f2(r.se)}</td><td>${f2(theorySE(r.n))}</td></tr>`).join("");
+
+    // mini histograms on a shared y-scale
+    const grid = $("compareGrid");
+    grid.innerHTML = "";
+    let yMax = 1;
+    sorted.forEach(r => {
+      const counts = new Array(60).fill(0);
+      r.means.forEach(x => { let b = Math.floor((x - XMIN) / 10); b = Math.max(0, Math.min(59, b)); counts[b]++; });
+      yMax = Math.max(yMax, ...counts);
+    });
+    yMax = niceMax(yMax * 1.05);
+    sorted.forEach(r => {
+      const card = document.createElement("div");
+      card.className = "mini";
+      card.innerHTML = `<div class="mini-title">Run ${r.id}: n = ${r.n}</div><div class="mini-sub">Observed SE = ${f2(r.se)} · σ/√n = ${f2(theorySE(r.n))}</div>`;
+      const c = document.createElement("div"); c.className = "chart"; card.appendChild(c);
+      grid.appendChild(card);
+      histogram(c, r.means, { binW: 10, color: "var(--means)", unit: "sample means", compact: true, width: 360, height: 150, yMax, label: `30 sample means, n = ${r.n}` });
+    });
+
+    drawSEChart();
+
+    const distinct = [...new Set(runs.map(r => r.n))].sort((a, b) => a - b);
+    const msg = $("compareMsg");
+    if (distinct.length >= 2) {
+      const lo = sorted.filter(r => r.n === distinct[0]).slice(-1)[0];
+      const hi = sorted.filter(r => r.n === distinct[distinct.length - 1]).slice(-1)[0];
+      msg.className = "feedback info show";
+      msg.innerHTML = `As n increased from <b>${lo.n}</b> to <b>${hi.n}</b>, the observed standard error fell from <b>${f2(lo.se)}</b> to <b>${f2(hi.se)}</b> ` +
+        `(theory: ${f2(theorySE(lo.n))} → ${f2(theorySE(hi.n))}). The histograms of sample means got narrower and more bell-shaped, and every one stayed centered near <i>μ</i> = ${f2(POP_MU)}.` +
+        (distinct.length < 3 ? " Try one more sample size to complete the lab table (n = 5, 20, 50)." : "");
+      $("btnStep6").disabled = false; $("step6Hint").style.display = "none";
+    } else {
+      msg.className = "feedback info show";
+      msg.innerHTML = `You have saved n = ${distinct[0]}. Now click <b>Choose a new n</b>, pick a larger sample size, and repeat Steps 3 to 5.`;
+      $("btnStep6").disabled = true; $("step6Hint").style.display = "";
+    }
+  }
+  function drawSEChart() {
+    $("seBlock").style.display = "block";
+    const c = $("seChart"); c.innerHTML = "";
+    const W = 720, H = 240, m = { l: 46, r: 14, t: 12, b: 40 };
+    const iw = W - m.l - m.r, ih = H - m.t - m.b;
+    const maxN = Math.max(60, ...runs.map(r => r.n));
+    const nMaxAxis = maxN <= 60 ? 60 : 100;
+    const yMax = niceMax(Math.max(theorySE(2), ...runs.map(r => r.se)) * 1.05);
+    const sx = v => m.l + v / nMaxAxis * iw, sy = v => m.t + ih - v / yMax * ih;
+    const svg = el("svg", { viewBox: `0 0 ${W} ${H}`, role: "img", "aria-label": "Standard error versus sample size" }, c);
+    const ax = el("g", { class: "axis" }, svg);
+    const step = niceStep(yMax);
+    for (let v = 0; v <= yMax + 1e-9; v += step) {
+      el("line", { x1: m.l, x2: W - m.r, y1: sy(v), y2: sy(v), stroke: "var(--grid)" }, ax);
+      el("text", { x: m.l - 8, y: sy(v) + 4, "text-anchor": "end" }, ax, v);
+    }
+    for (let v = 0; v <= nMaxAxis; v += 10) el("text", { x: sx(v), y: H - m.b + 16, "text-anchor": "middle" }, ax, v);
+    el("line", { x1: m.l, x2: W - m.r, y1: sy(0), y2: sy(0), stroke: "var(--muted)" }, ax);
+    el("text", { x: m.l + iw / 2, y: H - 4, "text-anchor": "middle", class: "axis-title" }, ax, "Sample size n");
+    el("text", { x: 12, y: m.t + ih / 2, "text-anchor": "middle", class: "axis-title", transform: `rotate(-90 12 ${m.t + ih / 2})` }, ax, "Standard error");
+    let d = "";
+    for (let v = 2; v <= nMaxAxis; v += 0.5) d += (d ? " L" : "M") + sx(v).toFixed(1) + "," + sy(Math.min(theorySE(v), yMax)).toFixed(1);
+    el("path", { d, fill: "none", stroke: "var(--curve)", "stroke-width": 2 }, svg);
+    runs.forEach((r, i) => {
+      const g = el("g", {}, svg);
+      el("circle", { cx: sx(r.n), cy: sy(r.se), r: 6, fill: "var(--means)", stroke: "var(--surface)", "stroke-width": 2 }, g);
+      el("circle", { cx: sx(r.n), cy: sy(r.se), r: 14, fill: "transparent" }, g);
+      el("title", {}, g, `Run ${i + 1}: n = ${r.n}, observed SE = ${f2(r.se)}, σ/√n = ${f2(theorySE(r.n))}`);
+    });
+  }
+  $("btnNewN").onclick = () => scrollTo(2);
+  $("btnClearRuns").onclick = () => { runs = []; renderRuns(); };
+  $("btnStep6").onclick = () => { markDone(6); markDone(7); unlock(7); scrollTo(7); };
+
+  // ---------- Step 7 ----------
+  document.querySelectorAll(".qa button").forEach(b => b.onclick = () => {
+    const qa = b.closest(".qa"); qa.classList.toggle("open");
+    b.textContent = qa.classList.contains("open") ? "Hide" : "Check";
+  });
+
+  setNText();
+})();
+</script>
+</body>
+</html>
